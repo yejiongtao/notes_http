@@ -1,0 +1,89 @@
+1. overview of HTTP
+	Http uses reliable data-transmission protocols
+		it guarantees that your data will not be damaged or scrambled in transit
+
+	MIME type (Multipurpose Internet Mail Extension)
+		Web servers attach a MIME type to all HTTP object data
+		A MIME type is a textual label, represented as a primary object type and a specific subtype, separated by a slash
+			text/html
+			text/plain
+			image/gif
+			application/vnd.ms-powerpoint
+	URI (Uniform Resource Identifier)
+		Each web server resource has a name
+		URL (Uniform Resource Locator)
+			for now, almost every URI is a URL
+			includes three parts
+				scheme, which describes the protocol used to access the resource
+				server address
+				the resource on the server
+		URN (Uniform Resource Name)
+			a unique name for a particular piece of content, independent of where the resource currently resides
+			need a supporting infrastructure to resolve resource locations
+			for now it's not widely used
+	transaction
+		An HTTP transaction consists of a request command, and a response result
+	message
+		HTTP messages are simple, line-oriented sequences of plain text
+		consists of three part
+			start line
+				indicating what to do for a request or what happened for a response
+			header fields
+				Zero or more header fields. 
+				Each header field consists of a name and a value, separated by a colon (:) for easy parsing. 
+				The headers end with a blank line
+			body
+				an optional message body containing any kind of data(e.g., images, videos, audio tracks, software applications)
+		sample
+			request message
+				GET /test/hi.txt HTTP/1.0
+				Accept: text/*
+				Accept_Language: en,fr
+								// a blank line here
+			response message
+				HTTP/1.0 200 OK
+				Content-type: text/plain
+				Content-length: 19
+
+				Hi! I'm a message!
+	connection
+		HTTP is an application layer protocol, which is layered over TCP/IP
+			actually the Internet itself is based on TCP/IP
+			TCP is connection oriented
+				every time you want to do a HTTP transaction, a TCP connection must be established
+		TCP provides
+			Error-free data transportation
+			In-order delivery (data will always arrive in the order in which it was sent)
+			Unsegmented data stream (can dribble out data in any size at any time)
+		use Telnet to talk to HTTP server
+			you can use Telnet to establish a TCP connection with the web server
+			and then directy send plain text to it
+				it will treat you as a web client and respond to you 
+	other architectural components of the web
+		besides web server and client, there are other components
+			Proxies
+				HTTP intermediaries that sit between clients and servers
+				act as a proxy for the user, accessing the server on the user's behalf
+				often used for security, cuz it can filter requests and responses
+			Caches
+				HTTP storehouses that keep copies of popular web pages close to clients
+			Gateways
+				Special web servers that connect to other applications
+				often used to convert HTTP traffic to another protocol
+			Tunnels
+				Special proxies that blindly forward HTTP communications
+				often used to transport non-HTTP data over one or more HTTP connections, without looking at the data
+					e.g. carrying encrypted SSL traffic through an HTTP connection, allowing SSL traffic through corporate firewalls that permit only web traffic
+			Agents
+				Semi-intelligent web clients that make automated HTTP requests
+				Any application that issues web requests is an HTTP agent
+					e.g. web browsers
+
+
+
+
+
+
+
+
+
