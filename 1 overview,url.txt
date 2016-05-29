@@ -79,11 +79,76 @@
 				Any application that issues web requests is an HTTP agent
 					e.g. web browsers
 
-
-
-
-
-
+2. URL
+	syntax
+		although URl syntax varies among schemes, most URLs adhere to a general URL syntax
+			<scheme>://<user>:<password>@<host>:<port>/<path>;<params>?<query>#<frag>
+		parameter
+			Params are name/value pairs. 
+			A URL can contain multiple params fields, separated from themselves and the rest of the path by semicolons (;).
+				http://www.baidu.com;type=d;item=1011
+		path
+			can be broken into path segments, and each segment can have its own params
+				http://www.joes-hardware.com/hammers;sale=false/index.html;graphics=true
+		query
+			Used by some schemes to pass parameters to active applications (such as databases, bulletin boards, search engines, and other Internet gateways)
+				The query component of the URL is passed along to a gateway resource
+			There is no common format for the contents of the query component. 
+				It is separated from the rest of the URL by the “?” character.
+					http://www.joes-hardware.com?item=100&color=blue
+		frag
+			A name for a piece or part of the resource. 
+			The frag field is not passed to the server when referencing the object; it is used internally by the client. 
+			It is separated from the rest of the URL by the “#” character.
+	URL shortcuts
+		relative url
+			can be used in html file, the absolute url can be resolve from the relative url and the base url
+			base url
+				you can specify a base url in <base> html flag
+				if you don't, the base url will be the parent of the html file
+					e.g. in http://WebReference.com/html/about.html, base url is http://WebReference.com/html/
+			relative url
+				about.html
+				./about.html		// equals to about.html
+				../experts/		// go back to the upper level
+		expandomatic url
+			Some browsers try to expand URLs automatically
+				Hostname expansion
+				history expansion
+		encoding characters in URL
+			why?
+				unsafe characters
+					some protocols use transmission methods that will strip off certain characters
+				reserved characters
+					e.g. '/'
+			how?
+				a '%' followed with two hex number, e.g. %5E
+			so if you want to use unsafe or reserved characters in url, you should encode them
+				in high level programming like Java, just use some methods to do it for you 
+			and remember to decode when you get a url
+		schemes
+			http
+			https
+				similar to http
+				uses SSL to provide end-to-end encryption of HTTP connection
+				with default port of 443
+			mailto
+				quite different from the standard URL
+				mailto:joe@cisco.com
+			ftp
+			rstp, rstpu
+				for audio and video media resources that can be retrieved through the Real Time Streaming Protocol
+				The “u” in the rtspu scheme denotes that the UDP protocol is used to retrieve the resource
+			file
+				denotes files directly accessible on a given host machine (by local disk, a network filesystem, or some other file-sharing system)
+			news
+				used to access specific articles or newsgroups
+				a news URL in itself does not contain sufficient information to locate the resource
+					It is the interpreting application’s job to acquire this information from the user
+						for example, you specify the default NNTP (news) server in your browser
+			telnet
+				sed to access interactive services. 
+				It does not represent an object per se, but an interactive application (resource) accessible via the telnet protocol
 
 
 
