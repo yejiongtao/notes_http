@@ -37,11 +37,11 @@
 		sample
 			request message
 				GET /test/hi.txt HTTP/1.0
-				Accept: text/*
-				Accept_Language: en,fr
-								// a blank line here
-			response message
-				HTTP/1.0 200 OK
+				Accept: text/*			// means the client accepts text
+				Accept_Language: en,fr		// there must be a blank line even if there's no header
+								// a blank line here, specifying the end of headers
+			response message	
+				HTTP/1.0 200 OK			// 'OK' is a reason-phrase, it's just for human consumption, so it can be anything
 				Content-type: text/plain
 				Content-length: 19
 

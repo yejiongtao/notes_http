@@ -1,0 +1,137 @@
+1. HTTP message
+	flow
+		inbound, outbound
+			messages travel inbound to the origin server, and travel outbound back to the user agent
+		upstream, downstream
+			messages are always traveling from upstream to downstream
+	parts of messages
+		the start line and the headers are just ASCII text, brokem by lines
+			each line ends with a two-character end-of-line sequence, consisting a carriage return and a line feed (CRLF)
+		the body can contain text or binary data or can be empty
+	methods
+			GET	Get a document from the server.				No (no body)
+			HEAD	Get just the headers for a document from the server.	No
+					behaves exactly like the GET method, but the server returns only the headers in the response
+					allows a client to inspect the headers for a resource without having to actually get the resource
+			POST	Send data to the server for processing.			Yes
+					In practice, it is often used to support HTML forms
+			PUT	Store the body of the request on the server.		Yes
+					writes documents to a server, in the inverse of the way that GET reads documents from a server
+					for the server to take the body of the request and either use it to create a new document named by the requested URL 
+						or, if that URL already exists, use the body to replace it
+			TRACE	Trace the message through proxy servers to the server.	No
+					allows clients to see how its request looks when it finally makes it to the server
+						cuz firewalls, proxies, gateways, or other applications have the opportunity to modify the original HTTP request
+					the arrived request will be put into the body of the response
+			OPTIONS	Determine what methods can operate on a server.		No
+			DELETE	Remove a document from the server.			No	
+
+		not all the servers implement all these methods
+			to be compliant with HTTP Version 1.1, a server need implement only the GET and HEAD methods for its resources
+		and some may have their own extension methods
+
+	Status code
+		Overall range	Defined range	Category
+		100-199		100-101		Informational
+			100 Continue	(supported since HTTP/1.1)
+				Indicates that an initial part of the request was received and the client should continue
+					intended to optimize the case where an HTTP client application has an entity body to send to a server but wants to check that the server will accept the entity before it sends it
+				how it works:
+					the client sends an Expect request header with the value 100-continue
+					waits sometime for the 100-continue(not forever), and then sends the entity
+				Servers should never send a 100 Continue status code to clients that do not send the 100-continue expectation. 
+					However, some errant servers do this
+
+		200-299		200-206		Successful
+			200 OK
+			201 Created
+				with the Location header containing the most specific reference
+			202 Accepted
+				not yet performed any action, and no guarantees for completing the request
+			203 Non-Authoritative Information
+				The information contained in the entity headers came not from the origin server but from a copy of the resource
+			204 No Content
+				The response message contains headers and a status line, but no entity body. 
+				Primarily used to update browsers without having them move to a new document (e.g., refreshing a form page).
+			205 Reset Content
+				Another code primarily for browsers. 
+				Tells the browser to clear any HTML form elements on the current page.
+			206 Partial Content
+				A partial or range request was successful
+				a range request refers to that asking for part of the resource
+
+		300-399		300-305		Redirection
+			300 Multiple Choices
+				Returned when a client has requested a URL that actually refers to multiple resources
+			301 Moved Permanently
+				The response should contain in the Location header the URL where the resource now resides
+					the client app can automatically sent another request based on the new url given
+			302 Found
+				Like the 301 status code
+				however, the client should use the URL given in the Location header to locate the resource temporarily. 
+					Future requests should use the old URL.
+			304 Not Modified
+				If a client makes a conditional request, such as a GET if the resource has not been changed recently, 
+					this code is used to indicate that the resource has not changed
+		400-499		400-415		Client error	(e.g. 401 Unauthorized, 404 Not Found)
+		500-599		500-505		Server error	(e.g. 501 Not Implemented)
+
+	headers
+		classification
+			General headers		Can appear in both request and response messages
+				Connection
+					Allows clients and servers to specify options about the request/response connection
+				Date
+					Provides a date and time stamp telling when the message was created
+
+			Request headers		Provide more information about the request
+					From
+						Provides the email address of the client’s user
+					Host
+						Gives the hostname and port of the server to which the request is being sent
+				Accept headers
+					Accept
+						Tells the server what media types are okay to send
+					Accept-Charset, Accept-Encoding, Accept-Language
+				conditional request headers
+					Expect
+						Allows a client to list server behaviors that it requires for a request
+					If-Match, If-Modified-Since, If-None-Match, If-Range, If-Unmodified-Since, Range
+				Request security headers
+					Authorization
+						Contains the data the client is supplying to the server to authenticate itself
+					Cookie
+						Used by clients to pass a token to the server—not a true security header, but it does have security implications
+				Proxy request headers
+					Max-Forwards, Proxy-Authorization, Proxy-Connection
+				
+			Response headers	Provide more information about the response
+					Public
+						A list of request methods the server supports for its resources
+					Server
+						The name and version of the server’s application software
+					Warning
+						A more detailed warning message than what is in the reason phrase
+				Negotiation headers
+					Accept-Ranges, Vary
+				Response security headers
+					Proxy-Authenticate
+					Set-Cookie
+						used to set a token on the client side that the server can use to identify the client
+
+			Entity headers		Describe body size and contents, or the resource itself
+					Allow
+						Lists the request methods that can be performed on this entity
+					Location
+						Tells the client where the entity really is located; used in directing the receiver to a (possibly new) location (URL) for the resource
+				Content headers
+					Content-Encoding, Content-Language, Content-Length, Content-MD5, Content-Type
+				Entity caching headers
+					Expires, Last-Modified
+
+			Extension headers	New headers that are not defined in the specification
+
+		Header continuation lines
+			a long header can be broken into multiple lines
+				the continuation line should begin with at least one space of tab character
+		
