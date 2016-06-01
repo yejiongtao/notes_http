@@ -1,0 +1,135 @@
+1. TCP connection
+	work flow of HTTP with TCP connection
+			(those in the parentheses are methods in socket programming)
+		server creates a new socket(socket), bind to a port(bind), permits socket connection(listen) and waits for a connection(accept)
+		client creates a socket based on ip:port(socket), connects to the server(connect)
+		the above two steps are common among all the socket connections, the followings are those have something to do with http
+			with connection established, client sends a request and waits for a response
+			server sends a response
+		if done, close connection
+
+	some low level things related to TCP performance
+		Handshake Delays
+			client sends a TCP packet with a "SYN" flag to server, asking for a new connection
+			if connection accepted, server sends back a "ACK" along with "SYN" 
+			client sends a "ACK" back, indicating the connection was established successfully
+				Modern TCP stacks let the client send data in this acknowledgment packet
+
+		delayed acknowledgments
+			acknowledgment schema of TCP
+				the Internet inself dose not guarantee reliable packet delivery
+					routers are free to destroy packets at will if they are overloaded
+				Each TCP segment gets a sequence number and a data-integrity checksum
+					The receiver of each segment returns small acknowledgment packets back to the sender when segments have been received intact
+					if the sender does not recieve an acknowledgment after some time, it will resend the packet
+				piggyback
+					to make better use of the network, TCP allows the small-sized acknowledgment to be attched on an outgoing packet in the same direction
+			delayed acknowledgment
+				which holds outgoing acknowledgments in a buffer for a certain window of time, looking for outgoing packet on which to piggyback
+				however, the bimodal request-reply behavior of HTTP reduces the chances that piggybacking can occur
+					so the delayed acknowledgment algorithms introduce significant delays
+
+		TCP slow start
+			initially limits the maximum speed of the connection and increases the speed over time as data is transmitted successfully
+				to prevent sudden overloading and congestion of the Internet
+			so it's good to reuse the connection, since it's old but tuned faster
+
+		Nagle's Algorithm
+			lets you send a non-full-size packet only if all other packets have been acknowledged
+				If other packets are still in flight, the partial data is buffered. 
+				This buffered data is sent only when pending packets are acknowledged or when the buffer has accumulated enough data to send a full packet
+			HTTP applications often disable Nagle's Algorithm to improve performance
+				by setting the TCP_NODELAY parameter on their stacks
+
+		TIME_WAIT port exhaustion
+			When a TCP endpoint closes a TCP connection, 
+				it maintains in memory a small control block recording the IP addresses and port numbers of the recently closed connection
+					often maintained for 2MSL (twice the estimated maximum segment lifetime, about 2 minutes)
+					to make sure a new TCP connection with the same addresses and port numbers is not created during this time
+				to prevent any stray duplicate packets from the previous connection from accidentally being injected into a new connection that has the same addresses and port numbers
+			modern faster routers often shorten the TIME_WAIT
+			so if you use one client to connect to one port of the server
+				you have to use a new port every time
+				and if you need so many connections, you may run into port exhaustion
+			you can solve this by rotating your server and client through several virtual IP addresses
+			and note that, keeping lots of connections or control blocks may dramatically slow down the system
+		
+2. HTTP connection management
+	Connection Header
+		HTTP messages are forwarded hop by hop from the client, through intermediary devices(if any), to the origin server (or the reverse)
+		the Connection header is specifically for the connection on one hop
+			the header will be deleted before the HTTP message is forwarded
+		Connection header can carry three types of tokens
+			HTTP header field names, listing headers relevant for only this connection
+				those headers will be deleted as well
+			Arbitrary token values, describing nonstandard options for this connection
+			the value 'close', indicating the persistent connection will be closed when done
+
+	serial transaction delays
+		if you open several connections in serial, the delays will add up
+		techniques to improve HTTP connection performance
+			Parallel connections
+				Concurrent HTTP requests across multiple TCP connections
+				In practice, browsers do use parallel connections, but they limit the total number of parallel connections to a small number (often four)
+					because the overhead of too many connections are dramatic
+				with scarce bandwidth, parallel connections may not be faster than serial connections
+					but users may feel faster
+					because if you use parallel connections to load different parts of a web page,
+						they will be loaded at the same time, instead of one at a time
+
+			Persistent connections
+				Reusing TCP connections to eliminate connect/close delays
+				Persistent connections can be most effective when used in conjunction with parallel connections. 
+					Today, many web applications open a small number of parallel connections, each persistent
+				HTTP/1.0+ Keep-Alive Connections
+					not active by default
+						you send a Connection:Keep-Alive header to the other side if you want to preserve the TCP connection 
+						the target sends back a Connection:Keep-Alive header if it agrees
+						(The Connection: Keep-Alive header must be sent with all messages that want to continue the persistence)
+					you can add some options to the Keep-Alive header
+						Connection: Keep-Alive
+						Keep-Alive: max=5, timeout=120
+					because it's in the Connection header, it just applied to a connection of one hop
+					however, clients and servers still can close idle connections at any time
+
+				HTTP/1.1 Persistence Connection
+					active by default
+						send a Connection:close header to deactivate it
+					clients and servers still can close idle connections at any time
+
+			Pipelined connections
+				Concurrent HTTP requests across a shared TCP connection
+				HTTP/1.1 permits optional request pipelining over persistent connections
+					Multiple requests can be enqueued before the responses arrive. 
+					While the first request is streaming across the network to a server on the other side of the globe, the second and third requests can get underway
+				note that
+					HTTP responses must be returned in the same order as the requests. 
+						HTTP messages are not tagged with sequence numbers, so there is no way to match responses with requests if the responses are received out of order.
+					HTTP clients must be prepared for the connection to close at any time and be prepared to redo any pipelined requests that did not finish
+					HTTP clients should not pipeline requests that have side effects (such as POSTs)
+						because no rollback can be performed if one of the POST request in the pipeline goes wrong
+
+			Multiplexed connections
+				Interleaving chunks of requests and responses (experimental)
+	
+	close a connection
+		a connection may be closed any time!
+			usually, you should retry those idempotent message
+				idempotence means the result of performing once is the same as performing multiple times
+				we assume that GET, HEAD, PUT, DELETE, TRACE, and OPTIONS methods are idempotent
+					but POST is usually not
+		Graceful Connection Close
+			ways to close a connection
+				full close
+					close() sockets call closes both the input and output channels
+				half close
+					shutdown() can only close one of the channel
+			it's always safe to close a output channel
+				which will notice the peer on the other side by an end-of-stream notification at the end of the buffer
+			but closing the input channel is not safe
+				if the peer sends data to your closed input channel, a error message will be sent via your output channel
+					which will erase the buffered data of the peer's input channel
+			so it's better to close your output channel first and wait for your peer to close its output channel
+				it times out, you may close your input channel as well
+
+

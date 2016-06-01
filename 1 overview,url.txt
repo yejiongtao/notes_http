@@ -51,6 +51,9 @@
 			actually the Internet itself is based on TCP/IP
 			TCP is connection oriented
 				every time you want to do a HTTP transaction, a TCP connection must be established
+				A TCP connection is distinguished by four values:
+					<source-IP-address, source-port, destination-IP-address, destination-port>
+			TCP sends its data in little chunks called IP packets (or IP datagrams)
 		TCP provides
 			Error-free data transportation
 			In-order delivery (data will always arrive in the order in which it was sent)
