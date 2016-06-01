@@ -1,0 +1,102 @@
+1. Web servers
+	different forms of web server
+		general-purpose software web servers
+			run on standard computer systems
+			most popular ones
+				Apache, Microsoft, nginx, Google
+
+		web server appliances
+			in which the software comes preinstalled and preconfigured on a computer
+			remove the need to install and configure software and often greatly simplify administration
+			however often less flexible and feature-rich
+				and the server hardware is not easily repurposeabel or upgradeable
+
+		embedded web servers
+			implemented in a small number of computer chips, making them perfect administration consoles for consumer devices
+			allow users to administer their consumer devices using a convenient web browser interface.
+	
+	what web servers do
+		set up connection --accept a client connection, or close if the client is unwanted
+			client hostname identification
+				Most web servers can be configured to convert client IP addresses into client hostnames, using “reverse DNS.” 
+					can be used for detailed access control and logging
+				but hostname lookups may take a long time
+					so high-capacity web servers either disable hostname resolution or enable it only for particular content
+			ident protocol for client identification
+				if the client supports ident protocol, 
+					when the http connection established, server sends a request to the client's 113 port for the username
+				ident can work inside organizations, but it does not work well across the public Internet
+					because of firewalls or something
+
+		receive request --read an HTTP request message from the network
+			Different web server architectures 
+				single-threaded
+					process one request at a time
+				multiprocess and multithreaded
+					often puts a limit on the maximum number of threads/processes
+				multiplexed I/O servers
+					all the connections are watched for activity
+						when something happens with the connection, some processing is performed with that connection
+					threads and processes are not tied up waiting on idle connections
+				multiplexed nultithreaded
+					(to take advantage of multiple CPUs in the computer platform)
+					Multiple threads (often one per physical processor) each watch the open connections (or a subset of the open connections) and perform a small amount of work on each connection
+
+		process request --interpret the request message and take action
+		access resource --access the resource specified in the message
+			docroot
+				a special folder in the web server filesystem reserved for web content
+				vitual hosted docroots
+					Virtually hosted web servers host multiple web sites on the same web server
+					you can specify a docroot for each site
+			directory listing
+				the path of the request may be a directory, in which case the server can perform the followings
+					return an error
+					return a special, default, "index file" instead of the directory
+					scan the directory, and return an HTMl page containing the contents
+			dynamic content resource mapping
+				mapping the resource to an executable
+			Server-Side Includes(SSI)
+				If a resource is flagged as containing server-side includes, the server processes the resource contents before sending them to the client.
+				The contents are scanned for certain special patterns (often contained inside special HTML comments), 
+					which can be variable names or embedded scripts. 
+					The special patterns are replaced with the values of variables or the output of executable scripts. 
+				This is an easy way to create dynamic content.
+
+		construct response --create the HTTP response message with the right headers
+			a message with an entity body often has Content-Type and Content-Length headers
+
+			redirection, used for	
+				Permanently moved resources
+				temporarily moved resources
+				URL augmentation
+					to rewrite URLs, often to embed context
+				load balancing
+					redirect to a less heavily loaded server
+				server affinity
+					Web servers may have local information for certain users; 
+					a server can redirect the client to a server that contains information about the client
+				Canonicalizing directory name
+					When a client requests a URI for a directory name without a trailing slash,
+					most web servers redirect the client to a URI with the slash added, so that relative links work correctly
+
+		send response --send the response back to the client
+			For persistent connections, the connection may stay open, 
+				in which case the server needs to be extra cautious to compute the Content-Length header correctly, 
+				or the client will have no way of knowing when a response ends
+
+		log trasaction --place notes about the completed transaction in a log file
+	
+2. common ways of detecting the end of a Socket message
+		Closing the connection at the end of the message
+		Putting the length of the message before the data itself
+		Using a separator; some value which will never occur in the normal data (or would always be escaped somehow)
+	HTTP applies all these three
+		if there's no entity body, the message ends with an extra LRCF
+		if the connection is not persistent, the message ends when the connection is closed
+		otherwise, you got to specify the Content-Length
+	
+
+
+
+
